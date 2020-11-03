@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using Enums;
 using UnityEngine;
 
@@ -10,13 +11,15 @@ public class Cell : MonoBehaviour
    public int Y;
    public Color Color;
 
+   public int neighbourCOunt = 0;
+   
    public List<GameObject> sides;
 
    public List<Cell> Neighbours;
 
    public Cell FirstCellBelow;
-   
-   private float height = 0.9f;//0.45f * 2f;
+
+   private float height = 0.9f; //0.45f * 2f;
    //private float width = 0.5f;//0.25f * 2f;
 
    public void SetCellPosColor(int x, int y)
@@ -26,18 +29,36 @@ public class Cell : MonoBehaviour
       float offset = 0;
       if (x % 2 != 0)
       {
-         offset = height/2;
+         offset = height / 2;
       }
-      transform.localPosition = new Vector3(x * 0.75f,y*height - offset);
-      var cellName = x + ":" + y;
-      gameObject.name = "Cell "+cellName;
-      UpdateNeighbours(GameManager.instance.Board);
+
+      transform.localPosition = new Vector3(x * 0.75f, y * height - offset);
+      string cellName = x + ":" + y;
+      gameObject.name = "Cell " + cellName;
+      UpdateNeighbours(GameManager.instance.board);
    }
+
+   public void SetGridPos(int x, int y)
+   {
+      X = x;
+      Y = y;
+      string cellName = X + ":" + Y;
+      gameObject.name = "Cell " + cellName;
+   }
+   
 
    public void SetColor(Color color)
    {
       Color = color;
       GetComponent<SpriteRenderer>().color = color;
+   }
+
+   public void UpdateAllNeighbours()
+   {
+      foreach (Cell cell in Neighbours)
+      {
+         cell.UpdateNeighbours(GameManager.instance.board);
+      }
    }
 
    public void UpdateNeighbours(Board board)
@@ -59,6 +80,7 @@ public class Cell : MonoBehaviour
       if(upLeft!=null) Neighbours.Add(upLeft);
 
       if (down != null) FirstCellBelow = down;
+      neighbourCOunt = Neighbours.Count;
    }
 
    public void ShineSide(Direction direction)

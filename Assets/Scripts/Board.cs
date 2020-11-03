@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using Enums;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -15,24 +16,24 @@ public class Board : MonoBehaviour
 
     public Cell[,] Cells;
 
+    public GameObject SelectedCellParent;
+
     private List<Cell> SelectedCells = new List<Cell>();
-    private Cell[,] VisitedCells;
 
     private List<Color> AllColors;
     
     private void Start()
     {
         Cells = new Cell[Coloum,Row];
-        VisitedCells = new Cell[Coloum, Row];
         CreateCells();
         UpdateCells();
     }
 
     public void CreateCells()
     {
-        for (var i = 0; i < Coloum; i++)
+        for (int i = 0; i < Coloum; i++)
         {
-            for (var j = 0; j < Row; j++)
+            for (int j = 0; j < Row; j++)
             {
                 var cell = Instantiate(CellPrefab, Vector3.zero, Quaternion.identity, transform);
                 Cells[i, j] = cell;
@@ -42,10 +43,10 @@ public class Board : MonoBehaviour
 
     public void UpdateCells()
     {
-        AllColors = GameManager.instance.Colors;
-        for (var i = 0; i < Coloum; i++)
+        AllColors = GameManager.instance.colors;
+        for (int i = 0; i < Coloum; i++)
         {
-            for (var j = 0; j < Row; j++)
+            for (int j = 0; j < Row; j++)
             {
                 Cells[i, j].SetCellPosColor(i, j);
                 List<Color> colorList = ColorsCanBe(Cells[i, j]);
@@ -57,55 +58,37 @@ public class Board : MonoBehaviour
     
     public Cell GetNeighbour(Cell cell, Direction direction)
     {
-        var x = cell.X;
-        var y = cell.Y;
+        if (cell == null)
+            return null;
+        int x = cell.X;
+        int y = cell.Y;
         switch (direction)
         {
             case Direction.Up:
                 y += 1;
                 break;
             case Direction.UpRight:
-                if (x % 2 != 0)
-                {
-                    x += 1;
-                }
-                else{ 
+                if (x % 2 == 0)
                     y += 1;
-                    x += 1;
-                }
+                x += 1;
                 break;
             case Direction.DownRight:
                 if (x % 2 != 0)
-                {
-                    x += 1;
                     y -= 1;
-                }
-                else{ 
-                    x += 1;
-                }
+                x += 1;
                 break;
             case Direction.Down:
                 y -= 1;
                 break;
             case Direction.DownLeft:
                 if (x % 2 != 0)
-                {
-                    x -= 1;
                     y -= 1;
-                }
-                else{ 
-                    x -= 1;
-                }
+                x -= 1;
                 break;
             case Direction.UpLeft:
-                if (x % 2 != 0)
-                {
-                    x -= 1;
-                }
-                else{ 
-                    x -= 1;
+                if (x % 2 == 0)
                     y += 1;
-                }
+                x -= 1;
                 break;
         }
 
@@ -119,21 +102,25 @@ public class Board : MonoBehaviour
         
     }
 
-    public void CellPres(Cell cell , Vector2 pointPressed)
+    public void CellPressed(Cell cell , Vector2 pointPressed)
     {
         ResetSelectedCells();
         SelectedCells = new List<Cell> {cell};
-        for (var i = 0; i < 2; i++)
+        for (int i = 0; i < 2; i++)
         {
             var minDistance = float.MaxValue;
             var closeCell = cell;
-            var neighbour = false;
-            for (var j = 0; j < cell.Neighbours.Count; j++)
+            for (int j = 0; j < cell.Neighbours.Count; j++)
             {
+                var neighbour = true;
                 var cellDistance = Vector2.Distance(pointPressed, cell.Neighbours[j].transform.position);
                 foreach (var selectedCell in SelectedCells)
                 {
-                    neighbour = selectedCell.IsNeighbour(cell.Neighbours[j]);
+                    if (!selectedCell.IsNeighbour(cell.Neighbours[j]))
+                    {
+                        neighbour = false;
+                        break;
+                    }
                 }
                 if (cellDistance < minDistance && !SelectedCells.Contains(cell.Neighbours[j]) && neighbour) 
                 {
@@ -143,7 +130,9 @@ public class Board : MonoBehaviour
             }
 
             if (minDistance < float.MaxValue)
+            {
                 SelectedCells.Add(closeCell);
+            }
         }
         HighlightSelectedCells();
     }
@@ -159,15 +148,14 @@ public class Board : MonoBehaviour
     {
         for (int i = 0; i < SelectedCells.Count; i++)
         {
-            Cell cell = SelectedCells[i];
-            cell.ResetColor();
+           SelectedCells[i].ResetColor();
         }
     }
 
     public List<Color> ColorsCanBe(Cell cell)
     {
         List<Cell> neighbours = cell.Neighbours;
-        AllColors = GameManager.instance.Colors;
+        AllColors = GameManager.instance.colors;
         List<Color> colorsCanBeUse = new List<Color>(AllColors);
         for (int i = 0; i < AllColors.Count; i++)
         {
@@ -186,6 +174,89 @@ public class Board : MonoBehaviour
         }
 
         return colorsCanBeUse;
+    }
+
+    public Vector2 CalculateMidPoint()
+    {
+        float x = 0;
+        float y = 0;
+        foreach (Cell cell in SelectedCells)
+        {
+            x += cell.transform.localPosition.x;
+            y += cell.transform.localPosition.y;
+        }
+        x /= 3;
+        y /= 3;
+        return new Vector2(x,y);
+    }
+
+    public void AddSelectedCellToParent()
+    {
+        foreach (Cell cell in SelectedCells)
+        {
+            cell.transform.parent = SelectedCellParent.transform;
+        }
+    }
+
+    public void RotateSelectedCells(bool clockwise)
+    {
+        Cell[] rightOrderRotate = new Cell[3];
+        foreach (Cell cell in SelectedCells)
+        {
+            if (cell.FirstCellBelow != null && SelectedCells.Contains(cell.FirstCellBelow))
+                rightOrderRotate[0] = cell;
+        }
+
+        if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
+        {
+            rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.DownRight);
+            rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+        }
+        else
+        {
+            rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+            rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.DownLeft);
+        }
+
+        Vector2[] cellPositions = new Vector2[3];
+        for (int i = 0; i < 3; i++)
+        {
+            Debug.Log(i);
+            cellPositions[i] = rightOrderRotate[i].transform.position;
+        }
+        
+        int tempX = rightOrderRotate[2].X;
+        int tempY = rightOrderRotate[2].Y;
+
+        rightOrderRotate[2].SetGridPos(rightOrderRotate[0].X, rightOrderRotate[0].Y);
+        Cells[rightOrderRotate[2].X, rightOrderRotate[2].Y] = rightOrderRotate[2]; 
+        
+        rightOrderRotate[0].SetGridPos(rightOrderRotate[1].X, rightOrderRotate[1].Y);
+        Cells[rightOrderRotate[0].X, rightOrderRotate[0].Y] = rightOrderRotate[0];
+        
+        rightOrderRotate[1].SetGridPos(tempX, tempY);
+        Cells[rightOrderRotate[1].X, rightOrderRotate[1].Y] = rightOrderRotate[1];
+
+        Cells[rightOrderRotate[2].X, rightOrderRotate[2].Y].UpdateNeighbours(this);
+        Cells[rightOrderRotate[1].X, rightOrderRotate[1].Y].UpdateNeighbours(this);
+        Cells[rightOrderRotate[0].X, rightOrderRotate[0].Y].UpdateNeighbours(this);
+        
+        Cells[rightOrderRotate[2].X, rightOrderRotate[2].Y].UpdateAllNeighbours();
+        Cells[rightOrderRotate[1].X, rightOrderRotate[1].Y].UpdateAllNeighbours();
+        Cells[rightOrderRotate[0].X, rightOrderRotate[0].Y].UpdateAllNeighbours();
+
+        
+        
+        rightOrderRotate[0].transform.DOMove(cellPositions[1], 1);
+        rightOrderRotate[1].transform.DOMove(cellPositions[2], 1);
+        rightOrderRotate[2].transform.DOMove(cellPositions[0], 1).OnComplete(() =>
+        {
+            
+            InputManager.instance.OpenInput();
+        });
+        
+    
+        ResetSelectedCells();
     }
     
   

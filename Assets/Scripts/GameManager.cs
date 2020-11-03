@@ -5,13 +5,14 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
-
-    public List<Color> Colors;
-    public Board Board;
+    public Camera mainCamera;
+    public List<Color> colors;
+    public Board board;
     
     void Start()
     {
         instance = this;
+        mainCamera = Camera.main;
     }
-    
+
 }

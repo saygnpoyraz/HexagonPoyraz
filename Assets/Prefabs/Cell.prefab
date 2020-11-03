@@ -103,6 +103,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   X: 0
   Y: 0
+  Color: {r: 0, g: 0, b: 0, a: 1}
   sides:
   - {fileID: 6505792994499493532}
   - {fileID: 6505792993655611564}
@@ -110,6 +111,8 @@ MonoBehaviour:
   - {fileID: 6505792993238135477}
   - {fileID: 6505792992970926638}
   - {fileID: 6505792993250159880}
+  Neighbours: []
+  FirstCellBelow: {fileID: 0}
 --- !u!60 &7168399379774924828
 PolygonCollider2D:
   m_ObjectHideFlags: 0
