@@ -9,7 +9,7 @@ public class Cell : MonoBehaviour
 {
    public int X;
    public int Y;
-   public Color Color;
+   public Color Color ;
 
    public int neighbourCOunt = 0;
    
@@ -20,10 +20,15 @@ public class Cell : MonoBehaviour
    public Cell FirstCellBelow;
 
    private float height = 0.9f; //0.45f * 2f;
+
+   public bool positionSetted = false;
+   
+   public Cell FirstCellUp;
    //private float width = 0.5f;//0.25f * 2f;
 
    public void SetCellPosColor(int x, int y)
    {
+      positionSetted = true;
       X = x;
       Y = y;
       float offset = 0;
@@ -80,6 +85,8 @@ public class Cell : MonoBehaviour
       if(upLeft!=null) Neighbours.Add(upLeft);
 
       if (down != null) FirstCellBelow = down;
+      if (up != null) FirstCellUp = up;
+
       neighbourCOunt = Neighbours.Count;
    }
 
@@ -97,4 +104,10 @@ public class Cell : MonoBehaviour
    {
       GetComponent<SpriteRenderer>().color = Color;
    }
+
+   public bool IsEqual(Cell cell)
+   {
+      return X == cell.X && Y == cell.Y && Color == cell.Color;
+   }
+   
 }
