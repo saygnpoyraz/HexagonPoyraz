@@ -35,8 +35,7 @@ public class InputManager : MonoBehaviour
 
                 if (mousePos.y - clickPos.y < -10)
                 {
-                    Debug.Log(mousePos.y - clickPos.y);
-                    GameManager.instance.board.RotateSelectedCells(true);
+                    GameManager.instance.board.RotateSelectedCells(true,3);
                     input = false;
                     // Rotate Clockwise
                 }

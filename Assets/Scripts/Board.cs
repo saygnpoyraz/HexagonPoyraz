@@ -97,9 +97,35 @@ public class Board : MonoBehaviour
         return Cells[x, y];
     }
 
-    public void FindMatches()
+    public bool FindMatches(Cell cell)
     {
-        
+        List<Cell> MatchCells = new List<Cell>() {cell};
+        for (int j = 0; j < cell.Neighbours.Count; j++)
+        {
+            var neighbour = true;
+            foreach (var matchCell in MatchCells)
+            {
+                if (!matchCell.IsNeighbour(cell.Neighbours[j]))
+                {
+                    neighbour = false;
+                    break;
+                }
+            }
+            if (cell.Color == cell.Neighbours[j].Color &&  neighbour) 
+            {
+                MatchCells.Add(cell.Neighbours[j]);
+            }
+        }
+
+        if (MatchCells.Count == 3)
+        {
+            foreach (Cell mCell in MatchCells)
+            {
+                Destroy(mCell.gameObject);
+            }
+        }
+       
+        return MatchCells.Count == 3;
     }
 
     public void CellPressed(Cell cell , Vector2 pointPressed)
@@ -198,8 +224,14 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void RotateSelectedCells(bool clockwise)
+    public void RotateSelectedCells(bool clockwise,int state)
     {
+        if (state == 0)
+        {
+            InputManager.instance.OpenInput();
+            return;
+        }
+        
         Cell[] rightOrderRotate = new Cell[3];
         foreach (Cell cell in SelectedCells)
         {
@@ -221,7 +253,6 @@ public class Board : MonoBehaviour
         Vector2[] cellPositions = new Vector2[3];
         for (int i = 0; i < 3; i++)
         {
-            Debug.Log(i);
             cellPositions[i] = rightOrderRotate[i].transform.position;
         }
         
@@ -245,14 +276,21 @@ public class Board : MonoBehaviour
         Cells[rightOrderRotate[1].X, rightOrderRotate[1].Y].UpdateAllNeighbours();
         Cells[rightOrderRotate[0].X, rightOrderRotate[0].Y].UpdateAllNeighbours();
 
-        
-        
-        rightOrderRotate[0].transform.DOMove(cellPositions[1], 1);
-        rightOrderRotate[1].transform.DOMove(cellPositions[2], 1);
-        rightOrderRotate[2].transform.DOMove(cellPositions[0], 1).OnComplete(() =>
+
+        float duration = GameManager.instance.rotationDuration;
+        rightOrderRotate[0].transform.DOMove(cellPositions[1], duration);
+        rightOrderRotate[1].transform.DOMove(cellPositions[2], duration);
+        rightOrderRotate[2].transform.DOMove(cellPositions[0], duration).OnComplete(() =>
         {
-            
-            InputManager.instance.OpenInput();
+            foreach (Cell cell in rightOrderRotate)
+            {
+                if (FindMatches(cell))
+                {
+                    InputManager.instance.OpenInput();
+                    return;
+                }
+            }
+            RotateSelectedCells(true,state-1);
         });
         
     

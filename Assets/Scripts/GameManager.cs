@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     public Camera mainCamera;
     public List<Color> colors;
     public Board board;
+    public float rotationDuration = 0.5f;
     
     void Start()
     {
