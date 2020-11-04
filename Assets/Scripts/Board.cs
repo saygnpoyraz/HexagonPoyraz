@@ -5,13 +5,14 @@ using System.Linq;
 using DG.Tweening;
 using Enums;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using Random = UnityEngine.Random;
 
 public class Board : MonoBehaviour
 {
     public int Coloum = 8;
-    public int Row = 9 ;
-    
+    public int Row = 9;
+
 
     public Cell CellPrefab;
 
@@ -24,10 +25,10 @@ public class Board : MonoBehaviour
     private List<Color> AllColors;
 
     private List<List<Cell>> threeMatches;
-    
+
     private void Start()
     {
-        Cells = new Cell[Coloum,Row];
+        Cells = new Cell[Coloum, Row];
         CreateCells();
         UpdateCells();
     }
@@ -61,12 +62,12 @@ public class Board : MonoBehaviour
             {
                 Cells[i, j].SetCellPosColor(i, j);
                 List<Color> colorList = ColorsCanBe(Cells[i, j]);
-                Cells[i, j].SetColor(colorList[Random.Range(0,colorList.Count)]);
-                
+                Cells[i, j].SetColor(colorList[Random.Range(0, colorList.Count)]);
+
             }
         }
     }
-    
+
     public Cell GetNeighbour(Cell cell, Direction direction)
     {
         if (cell == null)
@@ -113,7 +114,7 @@ public class Board : MonoBehaviour
         threeMatches = new List<List<Cell>>();
         foreach (Cell cell in checkCells)
         {
-            List<Cell> threeMatch = new List<Cell>(3){cell};
+            List<Cell> threeMatch = new List<Cell>(3) {cell};
             for (int i = 0; i < cell.Neighbours.Count; i++)
             {
                 bool neighbour = true;
@@ -125,12 +126,13 @@ public class Board : MonoBehaviour
                         break;
                     }
                 }
+
                 if (cell.Color == cell.Neighbours[i].Color && neighbour)
                 {
                     threeMatch.Add(cell.Neighbours[i]);
                 }
 
-                if (threeMatch.Count == 3 )
+                if (threeMatch.Count == 3)
                 {
                     bool uniqe = true;
                     for (int j = 0; j < threeMatches.Count; j++)
@@ -138,6 +140,7 @@ public class Board : MonoBehaviour
                         if (CheckListHaveSameMember(threeMatch, threeMatches[j]))
                             uniqe = false;
                     }
+
                     if (uniqe)
                         threeMatches.Add(threeMatch);
                 }
@@ -148,7 +151,6 @@ public class Board : MonoBehaviour
         {
             return true;
         }
-
         return false;
     }
 
@@ -164,6 +166,7 @@ public class Board : MonoBehaviour
                 }
             }
         }
+
         return false;
     }
 
@@ -215,7 +218,7 @@ public class Board : MonoBehaviour
         int counter = 0;
         for (int i = 0; i < Row; i++)
         {
-            if (Cells[coloumIndex,i] == null)
+            if (Cells[coloumIndex, i] == null)
             {
                 counter++;
             }
@@ -233,11 +236,11 @@ public class Board : MonoBehaviour
                 //
                 //     //MoveDown( Cells[coloumIndex, Row-1],counter);
                 // }
-                
+
                 //List<Color> colorList = ColorsCanBe(Cells[i, j]);
                 //Cells[i, j].SetColor(colorList[Random.Range(0,colorList.Count)]);
-                ChangeCell(Cells[coloumIndex,i],counter);
-                MoveDown(Cells[coloumIndex,i],counter);
+                ChangeCell(Cells[coloumIndex, i], counter);
+                MoveDown(Cells[coloumIndex, i], counter);
             }
             else
             {
@@ -246,14 +249,15 @@ public class Board : MonoBehaviour
             }
         }
     }
-    
+
 
     public void MoveDown(Cell cell, int numberOfRow)
     {
         if (cell == null)
             return;
 
-        cell.transform.DOLocalMove(new Vector2(cell.transform.localPosition.x, cell.transform.localPosition.y - (0.9f * numberOfRow)),
+        cell.transform.DOLocalMove(
+            new Vector2(cell.transform.localPosition.x, cell.transform.localPosition.y - (0.9f * numberOfRow)),
             0.5f).OnComplete((() =>
         {
             InputManager.instance.OpenInput();
@@ -262,7 +266,7 @@ public class Board : MonoBehaviour
 
     }
 
-    public void CellPressed(Cell cell , Vector2 pointPressed)
+    public void CellPressed(Cell cell, Vector2 pointPressed)
     {
         ResetSelectedCells();
         SelectedCells = new List<Cell> {cell};
@@ -282,7 +286,8 @@ public class Board : MonoBehaviour
                         break;
                     }
                 }
-                if (cellDistance < minDistance && !SelectedCells.Contains(cell.Neighbours[j]) && neighbour) 
+
+                if (cellDistance < minDistance && !SelectedCells.Contains(cell.Neighbours[j]) && neighbour)
                 {
                     minDistance = cellDistance;
                     closeCell = cell.Neighbours[j];
@@ -294,6 +299,7 @@ public class Board : MonoBehaviour
                 SelectedCells.Add(closeCell);
             }
         }
+
         HighlightSelectedCells();
     }
 
@@ -304,11 +310,12 @@ public class Board : MonoBehaviour
             SelectedCells[i].GetComponent<SpriteRenderer>().color = Color.white;
         }
     }
+
     public void ResetSelectedCells()
     {
         for (int i = 0; i < SelectedCells.Count; i++)
         {
-           SelectedCells[i].ResetColor();
+            SelectedCells[i].ResetColor();
         }
     }
 
@@ -320,15 +327,16 @@ public class Board : MonoBehaviour
         for (int i = 0; i < AllColors.Count; i++)
         {
             int counter = 0;
-            for (int j = 0; j <  neighbours.Count; j++)
+            for (int j = 0; j < neighbours.Count; j++)
             {
                 if (AllColors[i] == neighbours[j].Color)
                 {
                     counter++;
                 }
+
                 if (counter > 1)
                 {
-                    colorsCanBeUse.Remove(colorsCanBeUse.Find(x=> x == neighbours[j].Color));
+                    colorsCanBeUse.Remove(colorsCanBeUse.Find(x => x == neighbours[j].Color));
                 }
             }
         }
@@ -345,9 +353,10 @@ public class Board : MonoBehaviour
             x += cell.transform.localPosition.x;
             y += cell.transform.localPosition.y;
         }
+
         x /= 3;
         y /= 3;
-        return new Vector2(x,y);
+        return new Vector2(x, y);
     }
 
     public void AddSelectedCellToParent()
@@ -358,7 +367,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void RotateSelectedCells(bool clockwise,int state)
+    public void RotateSelectedCells(bool clockwise, int state)
     {
         bool matchFound = false;
         if (state == 0)
@@ -366,12 +375,16 @@ public class Board : MonoBehaviour
             InputManager.instance.OpenInput();
             return;
         }
-        
+
         Cell[] rightOrderRotate = new Cell[3];
         foreach (Cell cell in SelectedCells)
         {
             if (cell.FirstCellBelow != null && SelectedCells.Contains(cell.FirstCellBelow))
+            {
                 rightOrderRotate[0] = cell;
+                Debug.Log(cell.name);
+            }
+
         }
 
         if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
@@ -388,25 +401,26 @@ public class Board : MonoBehaviour
         Vector2[] cellPositions = new Vector2[3];
         for (int i = 0; i < 3; i++)
         {
+            Debug.Log(i);
             cellPositions[i] = rightOrderRotate[i].transform.position;
         }
-        
+
         int tempX = rightOrderRotate[2].X;
         int tempY = rightOrderRotate[2].Y;
 
         rightOrderRotate[2].SetGridPos(rightOrderRotate[0].X, rightOrderRotate[0].Y);
-        Cells[rightOrderRotate[2].X, rightOrderRotate[2].Y] = rightOrderRotate[2]; 
-        
+        Cells[rightOrderRotate[2].X, rightOrderRotate[2].Y] = rightOrderRotate[2];
+
         rightOrderRotate[0].SetGridPos(rightOrderRotate[1].X, rightOrderRotate[1].Y);
         Cells[rightOrderRotate[0].X, rightOrderRotate[0].Y] = rightOrderRotate[0];
-        
+
         rightOrderRotate[1].SetGridPos(tempX, tempY);
         Cells[rightOrderRotate[1].X, rightOrderRotate[1].Y] = rightOrderRotate[1];
 
         Cells[rightOrderRotate[2].X, rightOrderRotate[2].Y].UpdateNeighbours(this);
         Cells[rightOrderRotate[1].X, rightOrderRotate[1].Y].UpdateNeighbours(this);
         Cells[rightOrderRotate[0].X, rightOrderRotate[0].Y].UpdateNeighbours(this);
-        
+
         Cells[rightOrderRotate[2].X, rightOrderRotate[2].Y].UpdateAllNeighbours();
         Cells[rightOrderRotate[1].X, rightOrderRotate[1].Y].UpdateAllNeighbours();
         Cells[rightOrderRotate[0].X, rightOrderRotate[0].Y].UpdateAllNeighbours();
@@ -420,7 +434,7 @@ public class Board : MonoBehaviour
 
             if (!FindMatch(rightOrderRotate.ToList()))
             {
-                RotateSelectedCells(true,state-1);
+                RotateSelectedCells(true, state - 1);
             }
             else
             {
@@ -433,20 +447,20 @@ public class Board : MonoBehaviour
                 }
 
                 SlideDown();
-            
+
                 SelectedCells = new List<Cell>();
-            
+
                 // explode 
                 // fall cell
                 // create new cell
-            
-            
-            
+
+
+
                 InputManager.instance.OpenInput();
             }
 
-            
-            
+
+
             // foreach (Cell cell in rightOrderRotate)
             // {
             //     FindMatches(cell);
@@ -456,14 +470,12 @@ public class Board : MonoBehaviour
 
             //if (!matchFound)
         });
-        
-    
+
+
         ResetSelectedCells();
     }
 
-
-
-    public void SlideDown()
+    public void FillBlanks()
     {
         for (int i = 0; i < Coloum; i++)
         {
@@ -491,8 +503,61 @@ public class Board : MonoBehaviour
             }
         }
     }
-    
 
+    public void SlideDown()
+    {
+        for (int i = 0; i < Coloum; i++)
+        {
+            for (int j = 1; j < Row; j++)
+            {
+                if (Cells[i , j] != null)
+                {
+                    Fall(Cells[i,j]);
+                }
+            }
+        }
+        // find matches after fall
+        // for (int i = 0; i < Coloum; i++)
+        // {
+        //     for (int j = 1; j < Row; j++)
+        //     {
+        //         if (Cells[i , j] != null)
+        //         {
+        //             if (FindMatch(new List<Cell>(){Cells[i,j]}))
+        //             {
+        //                 foreach (var threeMatch in threeMatches)
+        //                 {
+        //                     foreach (var cell in threeMatch)
+        //                     {
+        //                         DestroyImmediate(cell.gameObject);
+        //                     }
+        //                 }
+        //
+        //                 SlideDown();
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
+    public void Fall(Cell cell)
+    {
+        if (GetNeighbour(cell,Direction.Down) == null && cell.Y != 0)
+        {
+            Cells[cell.X, cell.Y] = null;
+            cell.SetGridPos(cell.X,cell.Y-1);
+            Cells[cell.X, cell.Y] = cell;
+            cell.UpdateNeighbours(this);
+            cell.UpdateAllNeighbours();
+            cell.transform.DOLocalMove(new Vector2(cell.transform.localPosition.x, cell.transform.localPosition.y - 0.9f),
+                0.5f).OnComplete((() =>
+            {
+                Fall(cell);
+
+            }));
+            //cell.transform.localPosition = new Vector2(cell.transform.localPosition.x,cell.transform.localPosition.y-0.9f);
+        }
+    }
 
     public void ChangeCell(Cell cell,int y)
     {
