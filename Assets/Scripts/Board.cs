@@ -25,6 +25,8 @@ public class Board : MonoBehaviour
     private List<Color> AllColors;
 
     private List<List<Cell>> threeMatches;
+    
+    Cell[] rightOrderRotate = new Cell[3];
 
     private void Start()
     {
@@ -44,15 +46,7 @@ public class Board : MonoBehaviour
             }
         }
     }
-
-    public void printCellArray()
-    {
-        foreach (var VARIABLE in Cells)
-        {
-            Debug.Log(VARIABLE);
-        }
-    }
-
+    
     public void UpdateCells()
     {
         AllColors = GameManager.instance.colors;
@@ -261,7 +255,6 @@ public class Board : MonoBehaviour
             0.5f).OnComplete((() =>
         {
             InputManager.instance.OpenInput();
-            printCellArray();
         }));
 
     }
@@ -372,39 +365,39 @@ public class Board : MonoBehaviour
         bool matchFound = false;
         if (state == 0)
         {
+            rightOrderRotate = new Cell[3];
             InputManager.instance.OpenInput();
             return;
-        }
-
-        Cell[] rightOrderRotate = new Cell[3];
-        foreach (Cell cell in SelectedCells)
+        }else if (state == 3)
         {
-            if (cell.FirstCellBelow != null && SelectedCells.Contains(cell.FirstCellBelow))
+           
+            foreach (Cell cell in SelectedCells)
             {
-                rightOrderRotate[0] = cell;
-                Debug.Log(cell.name);
+                if (cell.FirstCellBelow != null && SelectedCells.Contains(cell.FirstCellBelow))
+                {
+                    rightOrderRotate[0] = cell;
+                }
+
             }
 
-        }
+            if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
+            {
+                rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.DownRight);
+                rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+            }
+            else
+            {
+                rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+                rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.DownLeft);
+            }
 
-        if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
-        {
-            rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.DownRight);
-            rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+            
         }
-        else
-        {
-            rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.Down);
-            rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.DownLeft);
-        }
-
         Vector2[] cellPositions = new Vector2[3];
         for (int i = 0; i < 3; i++)
         {
-            Debug.Log(i);
             cellPositions[i] = rightOrderRotate[i].transform.position;
-        }
-
+        } 
         int tempX = rightOrderRotate[2].X;
         int tempY = rightOrderRotate[2].Y;
 
@@ -450,25 +443,13 @@ public class Board : MonoBehaviour
 
                 SelectedCells = new List<Cell>();
 
-                // explode 
-                // fall cell
                 // create new cell
 
 
 
-                InputManager.instance.OpenInput();
+                //InputManager.instance.OpenInput();
             }
-
-
-
-            // foreach (Cell cell in rightOrderRotate)
-            // {
-            //     FindMatches(cell);
-            //     if (FindMatches(cell))
-            //         matchFound = true;
-            // }
-
-            //if (!matchFound)
+            
         });
 
 
@@ -504,18 +485,35 @@ public class Board : MonoBehaviour
         }
     }
 
+    public void FindCellToFall(List<Cell> fallCells)
+    {
+
+    }
+
     public void SlideDown()
     {
+        Tween lastTween = null;
         for (int i = 0; i < Coloum; i++)
         {
             for (int j = 1; j < Row; j++)
             {
-                if (Cells[i , j] != null)
+                if (Cells[i, j] != null)
                 {
-                    Fall(Cells[i,j]);
+                    Tween tween = Fall(Cells[i, j]);
+                    if (tween != null)
+                    {
+                        lastTween = tween;
+                    }
                 }
             }
         }
+
+        lastTween.OnComplete((() => {
+            InputManager.instance.OpenInput();
+        }));
+
+
+    }
         // find matches after fall
         // for (int i = 0; i < Coloum; i++)
         // {
@@ -538,9 +536,9 @@ public class Board : MonoBehaviour
         //         }
         //     }
         // }
-    }
+    
 
-    public void Fall(Cell cell)
+    public Tween Fall(Cell cell)
     {
         if (GetNeighbour(cell,Direction.Down) == null && cell.Y != 0)
         {
@@ -549,13 +547,48 @@ public class Board : MonoBehaviour
             Cells[cell.X, cell.Y] = cell;
             cell.UpdateNeighbours(this);
             cell.UpdateAllNeighbours();
-            cell.transform.DOLocalMove(new Vector2(cell.transform.localPosition.x, cell.transform.localPosition.y - 0.9f),
+            return cell.transform.DOLocalMove(new Vector2(cell.transform.localPosition.x, cell.transform.localPosition.y - 0.9f),
                 0.5f).OnComplete((() =>
             {
-                Fall(cell);
 
+                //Fall(Cells[cell.X, Row - 1]);
+                if (cell.FirstCellUp != null)
+                {
+                    Fall(cell);
+                    Fall(cell.FirstCellUp);
+                }
+                else
+                {
+                    Debug.Log("VAR" + cell.X);
+                    Fill(cell.X);
+                }
             }));
             //cell.transform.localPosition = new Vector2(cell.transform.localPosition.x,cell.transform.localPosition.y-0.9f);
+        }else 
+        if (cell.FirstCellUp == null)
+        { 
+            Fill(cell.X);
+        }
+
+        return null;
+    }
+
+    public void Fill(int col)
+    {
+        if (Cells[col, 8] == null)
+        {
+            var newCell = Instantiate(CellPrefab, Vector3.zero, Quaternion.identity, transform);
+            Cells[col, Row-1] = newCell; 
+            newCell.SetCellPosColor(col, Row-1);
+            List<Color> colorList = ColorsCanBe(newCell);
+            newCell.SetColor(colorList[Random.Range(0,colorList.Count)]);
+            newCell.UpdateAllNeighbours();
+            Tween fallTween = Fall(newCell);
+            if (fallTween != null)
+            {
+                fallTween.OnComplete(() => { Fill(col); });
+            }
+              
         }
     }
 
