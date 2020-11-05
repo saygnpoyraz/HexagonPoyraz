@@ -28,8 +28,10 @@ public class InputManager : MonoBehaviour
             if (Input.GetMouseButton(0))
             {
                 Vector2 mousePos = Input.mousePosition;
-                if (mousePos.y - clickPos.y > 0)
+                if (mousePos.y - clickPos.y > 10)
                 {
+                    GameManager.instance.board.RotateSelectedCells(false,3);
+                    input = false;
                     // Rotate CounterClockWise
                 }
 

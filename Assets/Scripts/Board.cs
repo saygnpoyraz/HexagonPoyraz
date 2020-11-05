@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using Enums;
+using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 using Random = UnityEngine.Random;
@@ -25,6 +26,8 @@ public class Board : MonoBehaviour
     private List<Color> AllColors;
 
     private List<List<Cell>> threeMatches;
+
+    private List<Cell> fallCells = new List<Cell>();
     
     Cell[] rightOrderRotate = new Cell[3];
 
@@ -380,16 +383,34 @@ public class Board : MonoBehaviour
 
             }
 
-            if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
+            if (clockwise)
             {
-                rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.DownRight);
-                rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+                if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
+                {
+                    rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.DownRight);
+                    rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+                }
+                else
+                {
+                    rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+                    rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.DownLeft);
+                }  
             }
             else
             {
-                rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.Down);
-                rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.DownLeft);
+                if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
+                {
+                    rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+                    rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.DownRight);
+                }
+                else
+                {
+                    rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.DownLeft);
+                    rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.Down);
+                }  
             }
+            
+           
 
             
         }
@@ -427,7 +448,7 @@ public class Board : MonoBehaviour
 
             if (!FindMatch(rightOrderRotate.ToList()))
             {
-                RotateSelectedCells(true, state - 1);
+                RotateSelectedCells(clockwise, state - 1);
             }
             else
             {
@@ -456,6 +477,16 @@ public class Board : MonoBehaviour
         ResetSelectedCells();
     }
 
+    public void RotateClockwise()
+    {
+        
+    }
+
+    public void RotateCounterClockWise()
+    {
+        
+    }
+    
     public void FillBlanks()
     {
         for (int i = 0; i < Coloum; i++)
@@ -485,10 +516,6 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void FindCellToFall(List<Cell> fallCells)
-    {
-
-    }
 
     public void SlideDown()
     {
@@ -508,8 +535,25 @@ public class Board : MonoBehaviour
             }
         }
 
-        lastTween.OnComplete((() => {
+        lastTween.OnComplete((() =>
+        {
             InputManager.instance.OpenInput();
+            
+            // EXPLODE MATHCES AFTER FALL !!!
+
+            // if ( FindMatch(fallCells))
+            // {
+            //     foreach (var threeMatch in threeMatches)
+            //     {
+            //         foreach (var cell in threeMatch) {
+            //             DestroyImmediate(cell.gameObject);
+            //         }
+            //     }
+            //     SlideDown();
+            // }
+            // fallCells = new List<Cell>();
+
+
         }));
 
 
@@ -542,6 +586,11 @@ public class Board : MonoBehaviour
     {
         if (GetNeighbour(cell,Direction.Down) == null && cell.Y != 0)
         {
+            if (!fallCells.Contains(cell))
+            {
+                fallCells.Add(cell);
+                Debug.Log(cell.name);
+            }
             Cells[cell.X, cell.Y] = null;
             cell.SetGridPos(cell.X,cell.Y-1);
             Cells[cell.X, cell.Y] = cell;
