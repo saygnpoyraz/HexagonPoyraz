@@ -445,7 +445,10 @@ public class Board : MonoBehaviour
         rightOrderRotate[1].transform.DOMove(cellPositions[2], duration);
         rightOrderRotate[2].transform.DOMove(cellPositions[0], duration).OnComplete(() =>
         {
-
+            
+            
+            List<int> colToFall = new List<int>();
+            
             if (!FindMatch(rightOrderRotate.ToList()))
             {
                 RotateSelectedCells(clockwise, state - 1);
@@ -456,10 +459,15 @@ public class Board : MonoBehaviour
                 {
                     foreach (var cell in threeMatch)
                     {
+                        if (!colToFall.Contains(cell.X))
+                            colToFall.Add(cell.X);
                         DestroyImmediate(cell.gameObject);
                     }
                 }
 
+
+
+                //FallTheCols(colToFall);
                 SlideDown();
 
                 SelectedCells = new List<Cell>();
@@ -477,15 +485,58 @@ public class Board : MonoBehaviour
         ResetSelectedCells();
     }
 
-    public void RotateClockwise()
-    {
-        
-    }
+    // public void FallTheCols(List<int> cols)
+    // {
+    //     for (int i = 0; i < cols.Count; i++) 
+    //     { 
+    //         for (int j = 1; j < Row; j++) 
+    //         { 
+    //             if (Cells[cols[i],j] != null && Cells[cols[i],j].FirstCellBelow == null)
+    //             {
+    //                 FallV2(cols[i],j);
+    //                 // Cell upCell = Cells[cols[i], j].FirstCellUp;
+    //                 // Cell mainCell = Cells[cols[i], j];
+    //                 // Cells[mainCell.X, mainCell.Y] = null;
+    //                 // mainCell.SetGridPos(mainCell.X,mainCell.Y-1);
+    //                 // Cells[mainCell.X, mainCell.Y] = mainCell;
+    //                 // upCell.UpdateNeighbours(this);
+    //                 // mainCell.UpdateNeighbours(this);
+    //                 // mainCell.UpdateAllNeighbours();
+    //                 // mainCell.transform.DOLocalMove(new Vector2(mainCell.transform.localPosition.x,
+    //                 //     mainCell.transform.localPosition.y - 0.9f),0.5f).OnComplete((() =>
+    //                 // {
+    //                 //     
+    //                 // }));
+    //             }
+    //         }
+    //     }
+    // }
+    //
+    // public void FallV2(int x, int y)
+    // {
+    //     Cell upCell = Cells[x, y].FirstCellUp;
+    //     Cell mainCell = Cells[x, y];
+    //     Cells[mainCell.X, mainCell.Y] = null;
+    //     mainCell.SetGridPos(mainCell.X,mainCell.Y-1);
+    //     Cells[mainCell.X, mainCell.Y] = mainCell;
+    //     mainCell.UpdateAllNeighbours();
+    //     mainCell.UpdateNeighbours(this);
+    //     mainCell.transform.DOLocalMove(new Vector2(mainCell.transform.localPosition.x,
+    //         mainCell.transform.localPosition.y - 0.9f),0.5f).OnComplete((() =>
+    //     {
+    //         if (mainCell.FirstCellBelow == null)
+    //         {
+    //             FallV2(mainCell.X,mainCell.Y);
+    //         }
+    //
+    //         if (upCell.FirstCellBelow == null)
+    //         {
+    //             Debug.Log("VAR");
+    //             FallV2(upCell.X,upCell.Y);
+    //         }
+    //     }));
+    // }
 
-    public void RotateCounterClockWise()
-    {
-        
-    }
     
     public void FillBlanks()
     {
@@ -589,7 +640,6 @@ public class Board : MonoBehaviour
             if (!fallCells.Contains(cell))
             {
                 fallCells.Add(cell);
-                Debug.Log(cell.name);
             }
             Cells[cell.X, cell.Y] = null;
             cell.SetGridPos(cell.X,cell.Y-1);
@@ -608,8 +658,7 @@ public class Board : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("VAR" + cell.X);
-                    Fill(cell.X);
+                    //Fill(cell.X);
                 }
             }));
             //cell.transform.localPosition = new Vector2(cell.transform.localPosition.x,cell.transform.localPosition.y-0.9f);
@@ -624,19 +673,27 @@ public class Board : MonoBehaviour
 
     public void Fill(int col)
     {
-        if (Cells[col, 8] == null)
+        if (Cells[col, Row-1] == null)
         {
             var newCell = Instantiate(CellPrefab, Vector3.zero, Quaternion.identity, transform);
             Cells[col, Row-1] = newCell; 
-            newCell.SetCellPosColor(col, Row-1);
+            Vector2 targetPos = newCell.SetCellPosColor(col, Row-1,true);
+            newCell.transform.localPosition = new Vector2(targetPos.x, targetPos.y + 10f);
             List<Color> colorList = ColorsCanBe(newCell);
             newCell.SetColor(colorList[Random.Range(0,colorList.Count)]);
             newCell.UpdateAllNeighbours();
-            Tween fallTween = Fall(newCell);
-            if (fallTween != null)
+            newCell.transform.DOLocalMove(targetPos, 1f).OnComplete(() =>
             {
-                fallTween.OnComplete(() => { Fill(col); });
-            }
+                Tween fallTween = Fall(newCell);
+                if (fallTween != null)
+                {
+                    fallTween.OnComplete(() =>
+                    {
+                        Fill(col);
+                    });
+                }
+            });
+            
               
         }
     }
