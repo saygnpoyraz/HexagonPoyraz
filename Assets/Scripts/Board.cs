@@ -468,11 +468,13 @@ public class Board : MonoBehaviour
             }
             else
             {
+                GameManager.instance.IncreaseMoveCount();
                 rightOrderRotate = new Cell[3];
                 foreach (var threeMatch in threeMatches)
                 {
                     foreach (var cell in threeMatch)
                     {
+                        GameManager.instance.IncreaseScore();
                         DestroyImmediate(cell.gameObject);
                     }
                 }
@@ -602,7 +604,7 @@ public class Board : MonoBehaviour
                 }
             }
         }
-        
+        InputManager.instance.OpenInput();
         lastTween.OnComplete((() =>
         {
             InputManager.instance.OpenInput();
@@ -690,6 +692,7 @@ public class Board : MonoBehaviour
                     foreach (var threeMatch in threeMatches)
                     {
                         foreach (var cell1 in threeMatch) {
+                            GameManager.instance.IncreaseScore();
                             DestroyImmediate(cell1.gameObject);
                         } 
                     } 
@@ -707,7 +710,6 @@ public class Board : MonoBehaviour
             lastTween= Fall(cell.FirstCellUp);
         }
         
-
         return lastTween;
     }
 
