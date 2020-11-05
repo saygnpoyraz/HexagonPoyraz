@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
     public Camera mainCamera;
     public List<Color> colors;
+    public Transform particleParent;
     public Board board;
     public float rotationDuration = 0.5f;
     public int score = 0;
@@ -22,10 +23,9 @@ public class GameManager : MonoBehaviour
 
     public void IncreaseScore()
     {
-        DOTween.To(()=> score, x=> score = x,score+5, 0.25f).OnUpdate((() =>
-        {
-            UIManager.instance.UpdateUI();
-        }));
+        score += 5;
+        UIManager.instance.UpdateUI();
+
     }
 
     public void IncreaseMoveCount()
@@ -33,5 +33,16 @@ public class GameManager : MonoBehaviour
         moveCount++;
         UIManager.instance.UpdateUI();
     }
-    
+
+    public void SetParticleToParent(Transform explodeParticleTransform)
+    {
+        foreach (Transform child in particleParent)
+        {
+            if (child.GetComponent<ParticleSystem>().isStopped)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+        explodeParticleTransform.SetParent(particleParent);
+    }
 }

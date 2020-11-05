@@ -3,33 +3,42 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using Enums;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Cell : MonoBehaviour
 {
+
+   public Sprite bombSprite;
+   public TextMesh bombCounter;
+   public int bombCount = 7;
+   
    public int X;
    public int Y;
    public Color Color ;
 
-   public int neighbourCOunt = 0;
+   public ParticleSystem explodeParticle;
+   public bool bomb;
    
-   public List<GameObject> sides;
-
    public List<Cell> Neighbours;
 
    public Cell FirstCellBelow;
 
    private float height = 0.9f; //0.45f * 2f;
 
-   public bool positionSetted = false;
    
    public Cell FirstCellUp;
    //private float width = 0.5f;//0.25f * 2f;
 
    public void SetCellPosColor(int x, int y)
    {
-      positionSetted = true;
-      X = x;
+      if (bomb)
+      {
+         GetComponent<SpriteRenderer>().sprite = bombSprite;
+         transform.GetChild(0).gameObject.SetActive(true);
+         bombCounter.text = bombCount + "";
+      } X = x;
       Y = y;
       float offset = 0;
       if (x % 2 != 0)
@@ -56,7 +65,12 @@ public class Cell : MonoBehaviour
    
    public Vector3 SetCellPosColor(int x, int y,bool isFill)
    {
-      positionSetted = true;
+      if (bomb)
+      {
+         GetComponent<SpriteRenderer>().sprite = bombSprite;
+         transform.GetChild(0).gameObject.SetActive(true);
+         bombCounter.text = bombCount + "";
+      }
       X = x;
       Y = y;
       float offset = 0;
@@ -82,6 +96,8 @@ public class Cell : MonoBehaviour
    public void SetColor(Color color)
    {
       Color = color;
+      ParticleSystem.MainModule settings = explodeParticle.main;
+      settings.startColor = new ParticleSystem.MinMaxGradient(Color);      
       GetComponent<SpriteRenderer>().color = color;
    }
 
@@ -114,7 +130,6 @@ public class Cell : MonoBehaviour
       if (down != null) FirstCellBelow = down;
       if (up != null) FirstCellUp = up;
 
-      neighbourCOunt = Neighbours.Count;
    }
 
    public void ShineSide(Direction direction)
@@ -136,5 +151,24 @@ public class Cell : MonoBehaviour
    {
       return X == cell.X && Y == cell.Y && Color == cell.Color;
    }
-   
+
+   public void DecreaseCounter()
+   {
+      bombCount--;
+      if (bombCount == 0)
+      {
+         // GAME OVER
+         Debug.Log("GAME OVER");
+      }
+      else
+      {
+         bombCounter.text = bombCount + "";
+      }
+   }
+
+   public void PlayExplodeParticle()
+   {
+      GameManager.instance.SetParticleToParent(explodeParticle.transform);
+      explodeParticle.Play();
+   }
 }

@@ -18,9 +18,7 @@ public class Board : MonoBehaviour
     public Cell CellPrefab;
 
     public Cell[,] Cells;
-
-    public GameObject SelectedCellParent;
-
+    
     private List<Cell> SelectedCells = new List<Cell>();
 
     private List<Color> AllColors;
@@ -30,7 +28,9 @@ public class Board : MonoBehaviour
     private List<Cell> fallCells = new List<Cell>();
     
     Cell[] rightOrderRotate = new Cell[3];
-
+    
+    private int scoreMultiplier = 1;
+    private Cell bombCell;
 
     private void Start()
     {
@@ -50,21 +50,7 @@ public class Board : MonoBehaviour
             }
         }
     }
-    
-    public bool CheckBoardIsFull()
-    {
-        bool full = true;
-        for (int i = 0; i < Coloum; i++)
-        {
-            if (Cells[i, Row-1] == null)
-            {
-                full = false;
-            }
-        }
 
-        return full;
-    }
-    
     public void UpdateCells()
     {
         AllColors = GameManager.instance.colors;
@@ -144,7 +130,7 @@ public class Board : MonoBehaviour
                     threeMatch.Add(cell.Neighbours[i]);
                 }
 
-                if (threeMatch.Count == 3)
+                if (threeMatch.Count >= 3)
                 {
                     bool uniqe = true;
                     for (int j = 0; j < threeMatches.Count; j++)
@@ -183,99 +169,6 @@ public class Board : MonoBehaviour
     }
 
 
-    // public bool FindMatches(Cell cell)
-    // {
-    //     List<Cell> MatchCells = new List<Cell>() {cell};
-    //     for (int j = 0; j < cell.Neighbours.Count; j++)
-    //     {
-    //         var neighbour = true;
-    //         foreach (var matchCell in MatchCells)
-    //         {
-    //             if (!matchCell.IsNeighbour(cell.Neighbours[j]))
-    //             {
-    //                 neighbour = false;
-    //                 break;
-    //             }
-    //         }
-    //         if (cell.Color == cell.Neighbours[j].Color &&  neighbour) 
-    //         {
-    //             MatchCells.Add(cell.Neighbours[j]);
-    //         }
-    //     }
-    //     List<int> indexs = new List<int>();
-    //     if (MatchCells.Count == 3)
-    //     {
-    //         foreach (Cell mCell in MatchCells)
-    //         {
-    //             if (!indexs.Contains(mCell.X))
-    //             {
-    //                 indexs.Add(mCell.X);
-    //             }
-    //             DestroyImmediate(mCell.gameObject);
-    //         }
-    //
-    //         SelectedCells = new List<Cell>();
-    //     }
-    //
-    //     foreach (int index in indexs)
-    //     {
-    //         MoveDownAllColoum(index);
-    //     }
-    //    
-    //     return MatchCells.Count == 3;
-    // }
-
-    public void MoveDownAllColoum(int coloumIndex)
-    {
-        int counter = 0;
-        for (int i = 0; i < Row; i++)
-        {
-            if (Cells[coloumIndex, i] == null)
-            {
-                counter++;
-            }
-            else if (counter != 0)
-            {
-                // for (int j = 0; j < counter; j++)
-                // {
-                //     Debug.Log("1");
-                //     var cell = Instantiate(CellPrefab, Vector3.zero, Quaternion.identity, transform);
-                //     Cells[coloumIndex, Row-1] = cell;
-                //     Debug.Log("2");
-                //
-                //     cell.SetCellPosColor(coloumIndex,Row-1 );
-                //     Debug.Log("3");
-                //
-                //     //MoveDown( Cells[coloumIndex, Row-1],counter);
-                // }
-
-                //List<Color> colorList = ColorsCanBe(Cells[i, j]);
-                //Cells[i, j].SetColor(colorList[Random.Range(0,colorList.Count)]);
-                ChangeCell(Cells[coloumIndex, i], counter);
-                MoveDown(Cells[coloumIndex, i], counter);
-            }
-            else
-            {
-                //Debug.Log(Cells[coloumIndex,i].name);
-
-            }
-        }
-    }
-
-
-    public void MoveDown(Cell cell, int numberOfRow)
-    {
-        if (cell == null)
-            return;
-
-        cell.transform.DOLocalMove(
-            new Vector2(cell.transform.localPosition.x, cell.transform.localPosition.y - (0.9f * numberOfRow)),
-            0.5f).OnComplete((() =>
-        {
-            InputManager.instance.OpenInput();
-        }));
-
-    }
 
     public void CellPressed(Cell cell, Vector2 pointPressed)
     {
@@ -370,13 +263,6 @@ public class Board : MonoBehaviour
         return new Vector2(x, y);
     }
 
-    public void AddSelectedCellToParent()
-    {
-        foreach (Cell cell in SelectedCells)
-        {
-            cell.transform.parent = SelectedCellParent.transform;
-        }
-    }
 
     public void RotateSelectedCells(bool clockwise, int state)
     {
@@ -469,12 +355,15 @@ public class Board : MonoBehaviour
             else
             {
                 GameManager.instance.IncreaseMoveCount();
+                if (bombCell != null)
+                    bombCell.DecreaseCounter();
                 rightOrderRotate = new Cell[3];
                 foreach (var threeMatch in threeMatches)
                 {
                     foreach (var cell in threeMatch)
                     {
                         GameManager.instance.IncreaseScore();
+                        cell.PlayExplodeParticle();
                         DestroyImmediate(cell.gameObject);
                     }
                 }
@@ -496,162 +385,27 @@ public class Board : MonoBehaviour
         ResetSelectedCells();
     }
 
-    // public void FallTheCols(List<int> cols)
-    // {
-    //     for (int i = 0; i < cols.Count; i++) 
-    //     { 
-    //         for (int j = 1; j < Row; j++) 
-    //         { 
-    //             if (Cells[cols[i],j] != null && Cells[cols[i],j].FirstCellBelow == null)
-    //             {
-    //                 FallV2(cols[i],j);
-    //                 // Cell upCell = Cells[cols[i], j].FirstCellUp;
-    //                 // Cell mainCell = Cells[cols[i], j];
-    //                 // Cells[mainCell.X, mainCell.Y] = null;
-    //                 // mainCell.SetGridPos(mainCell.X,mainCell.Y-1);
-    //                 // Cells[mainCell.X, mainCell.Y] = mainCell;
-    //                 // upCell.UpdateNeighbours(this);
-    //                 // mainCell.UpdateNeighbours(this);
-    //                 // mainCell.UpdateAllNeighbours();
-    //                 // mainCell.transform.DOLocalMove(new Vector2(mainCell.transform.localPosition.x,
-    //                 //     mainCell.transform.localPosition.y - 0.9f),0.5f).OnComplete((() =>
-    //                 // {
-    //                 //     
-    //                 // }));
-    //             }
-    //         }
-    //     }
-    // }
-    //
-    // public void FallV2(int x, int y)
-    // {
-    //     Cell upCell = Cells[x, y].FirstCellUp;
-    //     Cell mainCell = Cells[x, y];
-    //     Cells[mainCell.X, mainCell.Y] = null;
-    //     mainCell.SetGridPos(mainCell.X,mainCell.Y-1);
-    //     Cells[mainCell.X, mainCell.Y] = mainCell;
-    //     mainCell.UpdateAllNeighbours();
-    //     mainCell.UpdateNeighbours(this);
-    //     mainCell.transform.DOLocalMove(new Vector2(mainCell.transform.localPosition.x,
-    //         mainCell.transform.localPosition.y - 0.9f),0.5f).OnComplete((() =>
-    //     {
-    //         if (mainCell.FirstCellBelow == null)
-    //         {
-    //             FallV2(mainCell.X,mainCell.Y);
-    //         }
-    //
-    //         if (upCell.FirstCellBelow == null)
-    //         {
-    //             Debug.Log("VAR");
-    //             FallV2(upCell.X,upCell.Y);
-    //         }
-    //     }));
-    // }
 
-    
-    public void FillBlanks()
-    {
-        for (int i = 0; i < Coloum; i++)
-        {
-            for (int j = 0; j < Row; j++)
-            {
-                if (Cells[i, j] == null)
-                {
-                    var cell = Instantiate(CellPrefab, Vector3.zero, Quaternion.identity, transform);
-                    Cells[i, j] = cell;  
-                }
-            }
-        }
-        
-        for (int i = 0; i < Coloum; i++)
-        {
-            for (int j = 0; j < Row; j++)
-            {
-                if (!Cells[i, j].positionSetted)
-                {
-                    Cells[i, j].SetCellPosColor(i, j);
-                    List<Color> colorList = ColorsCanBe(Cells[i, j]);
-                    Cells[i, j].SetColor(colorList[Random.Range(0,colorList.Count)]);
-                    Cells[i, j].UpdateAllNeighbours();
-                }
-            }
-        }
-    }
+ 
 
 
     public void SlideDown()
     {
-        Tween lastTween = null;
         for (int i = 0; i < Coloum; i++)
         {
             for (int j = 1; j < Row; j++)
             {
                 if (j == Row-1 && Cells[i, j] == null)
                 {
-                    Tween tween = Fill(i);
-                    if (tween != null)
-                    {
-                        lastTween = tween;
-                    }
+                   Fill(i);
                 }
                 else if (Cells[i, j] != null)
-                {
-                    Tween tween = Fall(Cells[i, j]);
-                    if (tween != null)
-                    {
-                        lastTween = tween;
-                    }
+                { Fall(Cells[i, j]);
                 }
             }
         }
-        InputManager.instance.OpenInput();
-        lastTween.OnComplete((() =>
-        {
-            InputManager.instance.OpenInput();
-            //EXPLODE MATHCES AFTER FALL !!!
-
-            
-            
-            // if (FindMatch(fallCells))
-            // {
-            //     foreach (var threeMatch in threeMatches)
-            //     {
-            //         foreach (var cell in threeMatch) {
-            //             DestroyImmediate(cell.gameObject);
-            //         }
-            //     }
-            //     SlideDown();
-            // }
-            // fallCells = new List<Cell>();
-
-
-        }));
-
-
     }
-        // find matches after fall
-        // for (int i = 0; i < Coloum; i++)
-        // {
-        //     for (int j = 1; j < Row; j++)
-        //     {
-        //         if (Cells[i , j] != null)
-        //         {
-        //             if (FindMatch(new List<Cell>(){Cells[i,j]}))
-        //             {
-        //                 foreach (var threeMatch in threeMatches)
-        //                 {
-        //                     foreach (var cell in threeMatch)
-        //                     {
-        //                         DestroyImmediate(cell.gameObject);
-        //                     }
-        //                 }
-        //
-        //                 SlideDown();
-        //             }
-        //         }
-        //     }
-        // }
-    
+
 
     public Tween Fall(Cell cell)
     {
@@ -676,7 +430,6 @@ public class Board : MonoBehaviour
                 { 
                     lastTween= Fall(cell);
                 }
-                //Fall(Cells[cell.X, Row - 1]);
                 if (cell.FirstCellUp != null)
                 {
                     lastTween= Fall(cell.FirstCellUp);
@@ -693,6 +446,7 @@ public class Board : MonoBehaviour
                     {
                         foreach (var cell1 in threeMatch) {
                             GameManager.instance.IncreaseScore();
+                            cell1.PlayExplodeParticle();
                             DestroyImmediate(cell1.gameObject);
                         } 
                     } 
@@ -719,6 +473,12 @@ public class Board : MonoBehaviour
         if (Cells[col, Row-1] == null)
         {
             var newCell = Instantiate(CellPrefab, Vector3.zero, Quaternion.identity, transform);
+            if (GameManager.instance.score >= (100 * scoreMultiplier) && bombCell ==null)
+            {
+                scoreMultiplier++;
+                newCell.bomb = true;
+                bombCell = newCell;
+            }
             Cells[col, Row-1] = newCell; 
             Vector2 targetPos = newCell.SetCellPosColor(col, Row-1,true);
             newCell.transform.localPosition = new Vector2(targetPos.x, targetPos.y + 10f);
@@ -727,6 +487,10 @@ public class Board : MonoBehaviour
             newCell.UpdateAllNeighbours();
             newCell.transform.DOLocalMove(targetPos, 1f).OnComplete(() =>
             {
+                if (newCell.FirstCellBelow != null && newCell.Y == Row -1)
+                {
+                    InputManager.instance.OpenInput();
+                }
                 tween = Fall(newCell);
                 if (tween != null)
                 {
@@ -744,21 +508,6 @@ public class Board : MonoBehaviour
         cell.SetGridPos(cell.X,cell.Y-y);
         Cells[cell.X, cell.Y-y] = cell;
     }
-    
 
-    // public void Fall()
-    // {
-    //     for (int i = 0; i < Coloum; i++)
-    //     {
-    //         for (int j = 0; j < Row; j++)
-    //         {
-    //             if (Cells[i,j].FirstCellBelow == null)
-    //             {
-    //                 MoveDown(Cells[i,j]);
-    //             }
-    //         }
-    //     }
-    // }
-    
-  
+
 }
