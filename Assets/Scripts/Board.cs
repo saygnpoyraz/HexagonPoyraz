@@ -31,13 +31,14 @@ public class Board : MonoBehaviour
     
     Cell[] rightOrderRotate = new Cell[3];
 
+
     private void Start()
     {
         Cells = new Cell[Coloum, Row];
         CreateCells();
         UpdateCells();
     }
-
+    
     public void CreateCells()
     {
         for (int i = 0; i < Coloum; i++)
@@ -48,6 +49,20 @@ public class Board : MonoBehaviour
                 Cells[i, j] = cell;
             }
         }
+    }
+    
+    public bool CheckBoardIsFull()
+    {
+        bool full = true;
+        for (int i = 0; i < Coloum; i++)
+        {
+            if (Cells[i, Row-1] == null)
+            {
+                full = false;
+            }
+        }
+
+        return full;
     }
     
     public void UpdateCells()
@@ -365,15 +380,14 @@ public class Board : MonoBehaviour
 
     public void RotateSelectedCells(bool clockwise, int state)
     {
-        bool matchFound = false;
         if (state == 0)
         {
-            rightOrderRotate = new Cell[3];
             InputManager.instance.OpenInput();
             return;
-        }else if (state == 3)
+        }
+        if (state == 3)
         {
-           
+            rightOrderRotate = new Cell[3];
             foreach (Cell cell in SelectedCells)
             {
                 if (cell.FirstCellBelow != null && SelectedCells.Contains(cell.FirstCellBelow))
@@ -385,7 +399,7 @@ public class Board : MonoBehaviour
 
             if (clockwise)
             {
-                if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
+                if (GetNeighbour(rightOrderRotate[0], Direction.DownRight)!=null && SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
                 {
                     rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.DownRight);
                     rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.Down);
@@ -398,7 +412,7 @@ public class Board : MonoBehaviour
             }
             else
             {
-                if (SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
+                if (GetNeighbour(rightOrderRotate[0], Direction.DownRight)!=null && SelectedCells.Contains(GetNeighbour(rightOrderRotate[0], Direction.DownRight)))
                 {
                     rightOrderRotate[1] = GetNeighbour(rightOrderRotate[0], Direction.Down);
                     rightOrderRotate[2] = GetNeighbour(rightOrderRotate[0], Direction.DownRight);
@@ -447,7 +461,6 @@ public class Board : MonoBehaviour
         {
             
             
-            List<int> colToFall = new List<int>();
             
             if (!FindMatch(rightOrderRotate.ToList()))
             {
@@ -455,25 +468,21 @@ public class Board : MonoBehaviour
             }
             else
             {
+                rightOrderRotate = new Cell[3];
                 foreach (var threeMatch in threeMatches)
                 {
                     foreach (var cell in threeMatch)
                     {
-                        if (!colToFall.Contains(cell.X))
-                            colToFall.Add(cell.X);
                         DestroyImmediate(cell.gameObject);
                     }
                 }
 
 
 
-                //FallTheCols(colToFall);
                 SlideDown();
-
                 SelectedCells = new List<Cell>();
 
                 // create new cell
-
 
 
                 //InputManager.instance.OpenInput();
@@ -575,7 +584,15 @@ public class Board : MonoBehaviour
         {
             for (int j = 1; j < Row; j++)
             {
-                if (Cells[i, j] != null)
+                if (j == Row-1 && Cells[i, j] == null)
+                {
+                    Tween tween = Fill(i);
+                    if (tween != null)
+                    {
+                        lastTween = tween;
+                    }
+                }
+                else if (Cells[i, j] != null)
                 {
                     Tween tween = Fall(Cells[i, j]);
                     if (tween != null)
@@ -585,14 +602,15 @@ public class Board : MonoBehaviour
                 }
             }
         }
-
+        
         lastTween.OnComplete((() =>
         {
             InputManager.instance.OpenInput();
-            
-            // EXPLODE MATHCES AFTER FALL !!!
+            //EXPLODE MATHCES AFTER FALL !!!
 
-            // if ( FindMatch(fallCells))
+            
+            
+            // if (FindMatch(fallCells))
             // {
             //     foreach (var threeMatch in threeMatches)
             //     {
@@ -635,7 +653,8 @@ public class Board : MonoBehaviour
 
     public Tween Fall(Cell cell)
     {
-        if (GetNeighbour(cell,Direction.Down) == null && cell.Y != 0)
+        Tween lastTween = null;
+        if (GetNeighbour(cell,Direction.Down) == null && cell.Y != 0 && !DOTween.IsTweening(cell.transform))
         {
             if (!fallCells.Contains(cell))
             {
@@ -646,33 +665,55 @@ public class Board : MonoBehaviour
             Cells[cell.X, cell.Y] = cell;
             cell.UpdateNeighbours(this);
             cell.UpdateAllNeighbours();
-            return cell.transform.DOLocalMove(new Vector2(cell.transform.localPosition.x, cell.transform.localPosition.y - 0.9f),
+            Fill(cell.X);
+            cell.transform.DOLocalMove(new Vector2(cell.transform.localPosition.x, cell.transform.localPosition.y - 0.9f),
                 0.5f).OnComplete((() =>
             {
-
+                
+                if (cell.FirstCellBelow == null)
+                { 
+                    lastTween= Fall(cell);
+                }
                 //Fall(Cells[cell.X, Row - 1]);
                 if (cell.FirstCellUp != null)
                 {
-                    Fall(cell);
-                    Fall(cell.FirstCellUp);
+                    lastTween= Fall(cell.FirstCellUp);
                 }
                 else
                 {
-                    //Fill(cell.X);
+                    lastTween= Fill(cell.X);
                 }
+                lastTween = Fall(cell);
+                
+                if (FindMatch(new List<Cell>(){cell}))
+                {
+                    foreach (var threeMatch in threeMatches)
+                    {
+                        foreach (var cell1 in threeMatch) {
+                            DestroyImmediate(cell1.gameObject);
+                        } 
+                    } 
+                }
+                SlideDown();
             }));
             //cell.transform.localPosition = new Vector2(cell.transform.localPosition.x,cell.transform.localPosition.y-0.9f);
         }else 
         if (cell.FirstCellUp == null)
         { 
-            Fill(cell.X);
+            lastTween=  Fill(cell.X);
         }
+        if (cell.FirstCellUp != null)
+        {
+            lastTween= Fall(cell.FirstCellUp);
+        }
+        
 
-        return null;
+        return lastTween;
     }
 
-    public void Fill(int col)
+    public Tween Fill(int col)
     {
+        Tween tween = null;
         if (Cells[col, Row-1] == null)
         {
             var newCell = Instantiate(CellPrefab, Vector3.zero, Quaternion.identity, transform);
@@ -684,35 +725,22 @@ public class Board : MonoBehaviour
             newCell.UpdateAllNeighbours();
             newCell.transform.DOLocalMove(targetPos, 1f).OnComplete(() =>
             {
-                Tween fallTween = Fall(newCell);
-                if (fallTween != null)
+                tween = Fall(newCell);
+                if (tween != null)
                 {
-                    fallTween.OnComplete(() =>
-                    {
-                        Fill(col);
-                    });
+                    tween.OnComplete(() => { Fill(col); });
                 }
             });
-            
-              
         }
+
+       
+        return tween;
     }
 
     public void ChangeCell(Cell cell,int y)
     {
         cell.SetGridPos(cell.X,cell.Y-y);
         Cells[cell.X, cell.Y-y] = cell;
-    }
-
-    public void UpdateAllRow(int col)
-    {
-        for (int i = 0; i < Row; i++)
-        {
-            if (Cells[col,i] == null)
-                continue;
-            Cells[col,i].UpdateNeighbours(this);
-            //Cells[col,i].UpdateAllNeighbours();
-        }
     }
     
 

@@ -42,6 +42,17 @@ public class Cell : MonoBehaviour
       gameObject.name = "Cell " + cellName;
       UpdateNeighbours(GameManager.instance.board);
    }
+
+   public Vector2 GetPos()
+   {
+      float offset = 0;
+      if (X % 2 != 0)
+      {
+         offset = height / 2;
+      }
+
+      return new Vector2(X * 0.75f, Y * height - offset);
+   }
    
    public Vector3 SetCellPosColor(int x, int y,bool isFill)
    {
