@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
@@ -45,11 +42,10 @@ public class InputManager : MonoBehaviour
             }
             if (Input.GetMouseButtonUp(0))
             {
+                
                 var hit = Physics2D.OverlapPoint(GameManager.instance.mainCamera.ScreenToWorldPoint(Input.mousePosition)) as PolygonCollider2D;
                 if (hit != null && hit.CompareTag("Cell"))
                 {
-                    // Vector2 direction = GameManager.instance.mainCamera.ScreenToWorldPoint(Input.mousePosition) -
-                    //                     hit.gameObject.transform.position;
                     GameManager.instance.board.CellPressed(hit.gameObject.GetComponent<Cell>() , Camera.main.ScreenToWorldPoint(Input.mousePosition));
                 }
             }

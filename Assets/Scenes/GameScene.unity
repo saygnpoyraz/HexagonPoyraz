@@ -774,6 +774,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coloum: 8
   row: 9
+  bombSpawnPoint: 1000
   cellPrefab: {fileID: 1212330818482655337, guid: 4019c043612951f4a9d68901f11259c9,
     type: 3}
   mainCamera: {fileID: 0}
@@ -782,12 +783,13 @@ MonoBehaviour:
   - {r: 0.75384617, g: 0, b: 1, a: 1}
   - {r: 1, g: 0.5076142, b: 0, a: 1}
   - {r: 0.10106373, g: 1, b: 0, a: 1}
-  - {r: 0, g: 0.2824192, b: 1, a: 1}
+  - {r: 0, g: 1, b: 0.8982549, a: 1}
   particleParent: {fileID: 1585000544}
   board: {fileID: 2050976333}
   rotationDuration: 0.5
   score: 0
   moveCount: 0
+  gameOver: 0
 --- !u!114 &1416186385
 MonoBehaviour:
   m_ObjectHideFlags: 0

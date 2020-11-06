@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using DG.Tweening;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -8,6 +7,7 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
     public int coloum = 8;
     public int row = 9;
+    public int bombSpawnPoint = 1000;
     public Cell cellPrefab;
     public Camera mainCamera;
     public List<Color> colors;
@@ -60,9 +60,15 @@ public class GameManager : MonoBehaviour
         UIManager.instance.UpdateUI();
         StartCoroutine(RestartScene());
     }
+
+    public void RestartCor()
+    {
+        StartCoroutine(RestartScene());
+    }
     
     IEnumerator RestartScene()
     {
+        gameOver = false;
         DestroyImmediate(particleParent.gameObject);
         particleParent = new GameObject("Particle Parent").transform;
         board.GameOver();

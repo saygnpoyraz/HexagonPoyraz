@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using DG.Tweening;
+﻿using System.Collections.Generic;
 using Enums;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Cell : MonoBehaviour
 {
 
    public Sprite bombSprite;
    public TextMesh bombCounter;
-   public int bombCount = 2;
+   public int bombCount = 7;
    
    public int X;
    public int Y;
