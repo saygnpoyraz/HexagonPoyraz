@@ -780,10 +780,10 @@ MonoBehaviour:
   mainCamera: {fileID: 0}
   colors:
   - {r: 1, g: 0, b: 0, a: 1}
-  - {r: 0.75384617, g: 0, b: 1, a: 1}
+  - {r: 0.80150795, g: 0, b: 1, a: 1}
   - {r: 1, g: 0.5076142, b: 0, a: 1}
   - {r: 0.10106373, g: 1, b: 0, a: 1}
-  - {r: 0, g: 1, b: 0.8982549, a: 1}
+  - {r: 0, g: 0.31211066, b: 1, a: 1}
   particleParent: {fileID: 1585000544}
   board: {fileID: 2050976333}
   rotationDuration: 0.5

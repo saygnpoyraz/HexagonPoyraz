@@ -38,51 +38,6 @@ public class Board : MonoBehaviour
         UpdateCells();
     }
     
-    public void CreateCells()
-    {
-        for (int i = 0; i < coloum; i++)
-        {
-            for (int j = 0; j < row; j++)
-            {
-                var cell = Instantiate(cellPrefab, Vector3.zero, Quaternion.identity, transform);
-                cells[i, j] = cell;
-            }
-        }
-    }
-
-    public void UpdateCells()
-    {
-        allColors = GameManager.instance.colors;
-        for (int i = 0; i < coloum; i++)
-        {
-            for (int j = 0; j < row; j++)
-            {
-                cells[i, j].SetCellPosColor(i, j);
-                List<Color> colorList = ColorsCanBe(cells[i, j]);
-                cells[i, j].SetColor(colorList[Random.Range(0, colorList.Count)]);
-
-            }
-        }
-        CheckAvailableMove();
-        if (GameManager.instance.gameOver)
-        {
-            GameManager.instance.RestartCor();
-        }else
-            InputManager.instance.OpenInput();
-    }
-
-    public void GameOver()
-    {
-        DOTween.PauseAll();
-        for (int i = 0; i < coloum; i++)
-        {
-            for (int j = 0; j < row; j++)
-            {
-                DestroyImmediate(cells[i,j].gameObject);
-            }
-        }    
-    }
-    
     public Cell GetNeighbour(Cell cell, Direction direction)
     {
         if (cell == null)
@@ -124,7 +79,54 @@ public class Board : MonoBehaviour
         return cells[x, y];
     }
 
-    public bool FindMatch(List<Cell> checkCells)
+
+    private void CreateCells()
+    {
+        for (int i = 0; i < coloum; i++)
+        {
+            for (int j = 0; j < row; j++)
+            {
+                var cell = Instantiate(cellPrefab, Vector3.zero, Quaternion.identity, transform);
+                cells[i, j] = cell;
+            }
+        }
+    }
+
+    private void UpdateCells()
+    {
+        allColors = GameManager.instance.colors;
+        for (int i = 0; i < coloum; i++)
+        {
+            for (int j = 0; j < row; j++)
+            {
+                cells[i, j].SetCellPosColor(i, j);
+                List<Color> colorList = ColorsCanBe(cells[i, j]);
+                cells[i, j].SetColor(colorList[Random.Range(0, colorList.Count)]);
+
+            }
+        }
+        CheckAvailableMove();
+        if (GameManager.instance.IsGameOver())
+        {
+            GameManager.instance.RestartCor();
+        }else
+            InputManager.instance.OpenInput();
+    }
+
+    public void GameOver()
+    {
+        DOTween.PauseAll();
+        for (int i = 0; i < coloum; i++)
+        {
+            for (int j = 0; j < row; j++)
+            {
+                DestroyImmediate(cells[i,j].gameObject);
+            }
+        }    
+    }
+    
+
+    private bool FindMatch(List<Cell> checkCells)
     {
         threeMatches = new List<List<Cell>>();
         foreach (Cell cell in checkCells)
@@ -223,7 +225,7 @@ public class Board : MonoBehaviour
         HighlightSelectedCells();
     }
 
-    public void HighlightSelectedCells()
+    private void HighlightSelectedCells()
     {
         for (int i = 0; i < selectedCells.Count; i++)
         {
@@ -231,7 +233,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void ResetSelectedCells()
+    private void ResetSelectedCells()
     {
         for (int i = 0; i < selectedCells.Count; i++)
         {
@@ -239,7 +241,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public List<Color> ColorsCanBe(Cell cell)
+    private List<Color> ColorsCanBe(Cell cell)
     {
         List<Cell> neighbours = cell.Neighbours;
         allColors = GameManager.instance.colors;
@@ -263,22 +265,7 @@ public class Board : MonoBehaviour
 
         return colorsCanBeUse;
     }
-
-    public Vector2 CalculateMidPoint()
-    {
-        float x = 0;
-        float y = 0;
-        foreach (Cell cell in selectedCells)
-        {
-            x += cell.transform.localPosition.x;
-            y += cell.transform.localPosition.y;
-        }
-
-        x /= 3;
-        y /= 3;
-        return new Vector2(x, y);
-    }
-
+    
     public void RotateSelectedCells(bool clockwise, int state)
     {
         if (state == 0)
@@ -332,6 +319,11 @@ public class Board : MonoBehaviour
         Vector2[] cellPositions = new Vector2[3];
         for (int i = 0; i < 3; i++)
         {
+            if (rightOrderRotate[i] == null)
+            {
+                InputManager.instance.OpenInput();
+                return;
+            }
             cellPositions[i] = rightOrderRotate[i].transform.position;
         } 
         int tempX = rightOrderRotate[2].X;
@@ -360,9 +352,7 @@ public class Board : MonoBehaviour
         rightOrderRotate[1].transform.DOMove(cellPositions[2], duration);
         rightOrderRotate[2].transform.DOMove(cellPositions[0], duration).OnComplete(() =>
         {
-            
-            
-            
+
             if (!FindMatch(rightOrderRotate.ToList()))
             {
                 RotateSelectedCells(clockwise, state - 1);
@@ -393,8 +383,8 @@ public class Board : MonoBehaviour
 
         ResetSelectedCells();
     }
-    
-    public void SlideDown()
+
+    private void SlideDown()
     {
         for (int i = 0; i < coloum; i++)
         {
@@ -410,8 +400,8 @@ public class Board : MonoBehaviour
             }
         }
     }
-    
-    public Tween Fall(Cell cell,bool canBeLast)
+
+    private Tween Fall(Cell cell,bool canBeLast)
     {
         Tween lastTween = null;
         if (GetNeighbour(cell,Direction.Down) == null && cell.Y != 0 && !DOTween.IsTweening(cell.transform))
@@ -470,7 +460,7 @@ public class Board : MonoBehaviour
         else if (canBeLast && cell.X == lastColIndex)
         {
             CheckAvailableMove();
-            if (GameManager.instance.gameOver)
+            if (GameManager.instance.IsGameOver())
             {
                 GameManager.instance.GameOver();
             }else
@@ -481,7 +471,7 @@ public class Board : MonoBehaviour
         return lastTween;
     }
 
-    public Tween Fill(int col)
+    private Tween Fill(int col)
     {
         
         Tween tween = null;
@@ -489,7 +479,7 @@ public class Board : MonoBehaviour
         {
             lastColIndex = col;
             var newCell = Instantiate(cellPrefab, Vector3.zero, Quaternion.identity, transform);
-            if (GameManager.instance.score >= (GameManager.instance.bombSpawnPoint * scoreMultiplier) && bombCell ==null)
+            if (GameManager.instance.GetScore() >= (GameManager.instance.bombSpawnPoint * scoreMultiplier) && bombCell ==null)
             {
                 scoreMultiplier++;
                 newCell.bomb = true;
@@ -518,25 +508,7 @@ public class Board : MonoBehaviour
         return tween;
     }
 
-    public void SwitchCells(Cell firstCell,Cell secondCell)
-    {
-        int tempX = firstCell.X;
-        int tempY = firstCell.Y;
-        
-        firstCell.SetGridPos(secondCell.X,secondCell.Y);
-        cells[secondCell.X, secondCell.Y] = firstCell;
-        
-        secondCell.SetGridPos(tempX,tempY);
-        cells[tempX, tempY] = secondCell;
-        
-        firstCell.UpdateNeighbours(this);
-        secondCell.UpdateNeighbours(this);
-        
-        //firstCell.UpdateAllNeighbours();
-        //secondCell.UpdateAllNeighbours();
-    }
-
-    public void CheckAvailableMove()
+    private void CheckAvailableMove()
     {
         for (int i = 0; i < coloum; i++)
         {
@@ -565,6 +537,6 @@ public class Board : MonoBehaviour
             }
         }
 
-        GameManager.instance.gameOver = true;
+        GameManager.instance.SetGameOver(true);
     }
 }

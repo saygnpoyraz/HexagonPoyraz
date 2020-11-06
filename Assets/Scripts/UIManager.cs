@@ -18,8 +18,8 @@ public class UIManager : MonoBehaviour
 
    public void UpdateUI()
    {
-      scoreText.text = GameManager.instance.score + "";
-      moveCounterText.text = GameManager.instance.moveCount + "";
+      scoreText.text = GameManager.instance.GetScore() + "";
+      moveCounterText.text = GameManager.instance.GetMoveCount() + "";
    }
    
 }

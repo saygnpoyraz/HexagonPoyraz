@@ -14,9 +14,10 @@ public class GameManager : MonoBehaviour
     public Transform particleParent;
     public Board board;
     public float rotationDuration = 0.5f;
-    public int score = 0;
-    public int moveCount = 0;
-    public bool gameOver;
+    
+    private int score = 0;
+    private int moveCount = 0;
+    private bool gameOver;
 
     void Start()
     {
@@ -75,4 +76,24 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
         board.InitializeBoard();
     }
+
+   
+    public int GetScore()
+    {
+        return score;
+    }
+    public int GetMoveCount()
+    {
+        return moveCount;
+    }
+    
+    public bool IsGameOver()
+    {
+        return gameOver;
+    }
+    public void SetGameOver(bool gameOver)
+    {
+        this.gameOver = gameOver;
+    }
+     
 }

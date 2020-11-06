@@ -16,16 +16,13 @@ public class Cell : MonoBehaviour
    public ParticleSystem explodeParticle;
    public GameObject highlighted;
    public bool bomb;
-   
    public List<Cell> Neighbours;
-
    public Cell FirstCellBelow;
+   public Cell FirstCellUp;
 
    private float height = 0.9f; //0.45f * 2f;
 
    
-   public Cell FirstCellUp;
-   //private float width = 0.5f;//0.25f * 2f;
 
    public void SetCellPosColor(int x, int y)
    {
@@ -133,7 +130,6 @@ public class Cell : MonoBehaviour
       Color highligtedColor = this.color;
       highligtedColor.a = 0.5f;
       GetComponent<SpriteRenderer>().color = highligtedColor;
-      //highlighted.SetActive(true);
    }
    
 
@@ -145,7 +141,6 @@ public class Cell : MonoBehaviour
    public void UnShine()
    {
       GetComponent<SpriteRenderer>().color = this.color;
-      //highlighted.SetActive(false);
    }
 
    public bool IsEqual(Cell cell)
@@ -159,7 +154,7 @@ public class Cell : MonoBehaviour
       bombCounter.text = bombCount + "";
       if (bombCount == 0)
       {
-         GameManager.instance.gameOver = true;
+         GameManager.instance.SetGameOver( true);
       }
    }
 

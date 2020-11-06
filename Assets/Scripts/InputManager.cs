@@ -42,7 +42,6 @@ public class InputManager : MonoBehaviour
             }
             if (Input.GetMouseButtonUp(0))
             {
-                
                 var hit = Physics2D.OverlapPoint(GameManager.instance.mainCamera.ScreenToWorldPoint(Input.mousePosition)) as PolygonCollider2D;
                 if (hit != null && hit.CompareTag("Cell"))
                 {
