@@ -367,16 +367,7 @@ public class Board : MonoBehaviour
                 if (bombCell != null)
                     bombCell.DecreaseCounter();
                 rightOrderRotate = new Cell[3];
-                foreach (var threeMatch in threeMatches)
-                {
-                    foreach (var cell in threeMatch)
-                    {
-                        GameManager.instance.IncreaseScore();
-                        cell.PlayExplodeParticle();
-                        DestroyImmediate(cell.gameObject);
-                    }
-                }
-
+                ExplodeMatches();
                 SlideDown();
                 selectedCells = new List<Cell>();
                 rightOrderRotate = new Cell[3];
@@ -438,21 +429,12 @@ public class Board : MonoBehaviour
                     lastTween= Fill(cell.X);
                 }
                 lastTween = Fall(cell,false);
-                
                 if (FindMatch(new List<Cell>(){cell}))
                 {
-                    foreach (var threeMatch in threeMatches)
-                    {
-                        foreach (var cell1 in threeMatch) {
-                            GameManager.instance.IncreaseScore();
-                            cell1.PlayExplodeParticle();
-                            DestroyImmediate(cell1.gameObject);
-                        } 
-                    } 
+                   ExplodeMatches();
                 }
                 SlideDown();
             }));
-            //cell.transform.localPosition = new Vector2(cell.transform.localPosition.x,cell.transform.localPosition.y-0.9f);
         }else 
         if (cell.FirstCellUp == null)
         { 
@@ -532,7 +514,6 @@ public class Board : MonoBehaviour
                     {
                         cell.color = cellColor;
                         neighbourCell.color = neighborColor;
-                        //Debug.Log(neighbourCell.name);
                         return;
                     }
                     cell.color = cellColor;
@@ -543,5 +524,18 @@ public class Board : MonoBehaviour
         }
 
         GameManager.instance.SetGameOver(true);
+    }
+
+    private void ExplodeMatches()
+    {
+        foreach (var threeMatch in threeMatches)
+        {
+            foreach (var cell in threeMatch)
+            {
+                GameManager.instance.IncreaseScore();
+                cell.PlayExplodeParticle();
+                DestroyImmediate(cell.gameObject);
+            }
+        }
     }
 }
