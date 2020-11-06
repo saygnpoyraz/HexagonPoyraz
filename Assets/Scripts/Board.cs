@@ -270,12 +270,16 @@ public class Board : MonoBehaviour
     {
         if (state == 0)
         {
+            rightOrderRotate = new Cell[3];
+            selectedCells = new List<Cell>();
             InputManager.instance.OpenInput();
             return;
         }
         if (state == 3)
         {
-            rightOrderRotate = new Cell[3];
+            if (selectedCells.Count != 0)
+                InputManager.instance.CloseInput();
+            
             foreach (Cell cell in selectedCells)
             {
                 if (cell.FirstCellBelow != null && selectedCells.Contains(cell.FirstCellBelow))
@@ -375,6 +379,7 @@ public class Board : MonoBehaviour
 
                 SlideDown();
                 selectedCells = new List<Cell>();
+                rightOrderRotate = new Cell[3];
 
             }
             

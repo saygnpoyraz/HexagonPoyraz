@@ -3,8 +3,8 @@
 public class InputManager : MonoBehaviour
 {
     public static InputManager instance;
-    private bool input = true;
     
+    private bool input = true;
     private Vector2 clickPos;
 
 
@@ -28,15 +28,11 @@ public class InputManager : MonoBehaviour
                 if (mousePos.y - clickPos.y > 10)
                 {
                     GameManager.instance.board.RotateSelectedCells(false,3);
-                    input = false;
-                    // Rotate CounterClockWise
                 }
 
                 if (mousePos.y - clickPos.y < -10)
                 {
                     GameManager.instance.board.RotateSelectedCells(true,3);
-                    input = false;
-                    // Rotate Clockwise
                 }
 
             }
