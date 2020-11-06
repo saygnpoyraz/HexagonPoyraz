@@ -772,6 +772,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1614f81ca1bed94fa19d5d80f411a9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  coloum: 8
+  row: 9
+  cellPrefab: {fileID: 1212330818482655337, guid: 4019c043612951f4a9d68901f11259c9,
+    type: 3}
   mainCamera: {fileID: 0}
   colors:
   - {r: 1, g: 0, b: 0, a: 1}
@@ -1004,10 +1008,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbbaa3644fcc0834685f2c57b8685b0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Coloum: 8
-  Row: 9
-  CellPrefab: {fileID: 1631724234140029820, guid: 4019c043612951f4a9d68901f11259c9,
-    type: 3}
 --- !u!1 &2132862375
 GameObject:
   m_ObjectHideFlags: 0

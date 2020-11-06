@@ -60,4 +60,9 @@ public class InputManager : MonoBehaviour
     {
         input = true;
     }
+
+    public void CloseInput()
+    {
+        input = false;
+    }
 }

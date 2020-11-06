@@ -12,13 +12,14 @@ public class Cell : MonoBehaviour
 
    public Sprite bombSprite;
    public TextMesh bombCounter;
-   public int bombCount = 7;
+   public int bombCount = 2;
    
    public int X;
    public int Y;
-   public Color Color ;
+   public Color color ;
 
    public ParticleSystem explodeParticle;
+   public GameObject highlighted;
    public bool bomb;
    
    public List<Cell> Neighbours;
@@ -95,9 +96,9 @@ public class Cell : MonoBehaviour
 
    public void SetColor(Color color)
    {
-      Color = color;
+      this.color = color;
       ParticleSystem.MainModule settings = explodeParticle.main;
-      settings.startColor = new ParticleSystem.MinMaxGradient(Color);      
+      settings.startColor = new ParticleSystem.MinMaxGradient(this.color);      
       GetComponent<SpriteRenderer>().color = color;
    }
 
@@ -132,42 +133,45 @@ public class Cell : MonoBehaviour
 
    }
 
-   public void ShineSide(Direction direction)
+   public void Shine()
    {
-      
+      Color highligtedColor = this.color;
+      highligtedColor.a = 0.5f;
+      GetComponent<SpriteRenderer>().color = highligtedColor;
+      //highlighted.SetActive(true);
    }
+   
 
    public bool IsNeighbour(Cell cell)
    {
       return Neighbours.Contains(cell);
    }
    
-   public void ResetColor()
+   public void UnShine()
    {
-      GetComponent<SpriteRenderer>().color = Color;
+      GetComponent<SpriteRenderer>().color = this.color;
+      //highlighted.SetActive(false);
    }
 
    public bool IsEqual(Cell cell)
    {
-      return X == cell.X && Y == cell.Y && Color == cell.Color;
+      return X == cell.X && Y == cell.Y && this.color == cell.color;
    }
 
    public void DecreaseCounter()
    {
       bombCount--;
+      bombCounter.text = bombCount + "";
       if (bombCount == 0)
       {
-         // GAME OVER
-         Debug.Log("GAME OVER");
-      }
-      else
-      {
-         bombCounter.text = bombCount + "";
+         GameManager.instance.gameOver = true;
       }
    }
 
    public void PlayExplodeParticle()
    {
+      if (explodeParticle == null)
+         return;
       GameManager.instance.SetParticleToParent(explodeParticle.transform);
       explodeParticle.Play();
    }

@@ -15,6 +15,8 @@ public class UIManager : MonoBehaviour
    private void Start()
    {
       instance = this;
+      scoreText.text = "0";
+      moveCounterText.text = "0";
    }
 
    public void UpdateUI()
@@ -22,4 +24,5 @@ public class UIManager : MonoBehaviour
       scoreText.text = GameManager.instance.score + "";
       moveCounterText.text = GameManager.instance.moveCount + "";
    }
+   
 }
